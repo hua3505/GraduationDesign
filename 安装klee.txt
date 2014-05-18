@@ -1,0 +1,28 @@
+cd ~
+sudo apt-get -y install g++ curl dejagnu subversion bison flex
+mkdir work
+cd work
+wget http://llvm.org/releases/2.9/llvm-gcc-4.2-2.9-i686-linux.tgz
+tar zxfv llvm-gcc-4.2-2.9-i686-linux.tgz
+echo "export PATH=\$PATH:~/work/llvm-gcc-4.2-2.9-i686-linux/bin" >> ~/.bashrc    ;mine /usr/lib/llvm-gcc-4.2-2.9-i686-linux/bin
+echo "export PATH=\$PATH:~/work/klee/Release+Asserts/bin" >> ~/.bashrc
+echo "export C_INCLUDE_PATH=/usr/include/i386-linux-gnu" >> ~/.bashrc
+source ~/.bashrc
+curl -O http://llvm.org/releases/2.9/llvm-2.9.tgz
+tar zxvf llvm-2.9.tgz
+cd llvm-2.9
+./configure --enable-optimized --enable-assertions
+make -j $(grep -c processor /proc/cpuinfo)
+cd ..
+svn co -r 940 https://stp-fast-prover.svn.sourceforge.net/svnroot/stp-fast-prover/trunk/stp  ;i hav't add stp,maybe error 
+stp
+cd stp
+./scripts/configure --with-prefix=/home/lab/work/stp/install --with-cryptominisat2  ;mine /home/shaw/work/stp/install
+make  -j $(grep -c processor /proc/cpuinfo) OPTIMIZE=-O2 CFLAGS_M32= install
+cd ..
+svn co http://llvm.org/svn/llvm-project/klee/trunk klee
+cd klee
+./configure --with-llvm=/home/lab/work/llvm-2.9 --with-stp=/home/lab/work/stp/install
+make -j $(grep -c processor /proc/cpuinfo) ENABLE_OPTIMIZED=1
+make unittests
+
