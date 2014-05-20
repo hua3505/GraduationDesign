@@ -1,0 +1,11 @@
+struct variableInfo
+{
+    int recordSeq;
+    int writeOrRead;
+    char threadName[16];
+    char variableName[8];
+};
+
+static int recordTime = 1;
+int enter_write(char *threadName,char *variableName);
+int enter_read(char *threadName,char *variableName);

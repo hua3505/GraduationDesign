@@ -1,0 +1,27 @@
+void enter_replay()
+{
+    FILE *file = fopen("result.txt","r");
+    if(file == NULL)
+    {
+        printf("open file error!\n");
+        return ;
+    }
+    struct variableInfo vInfo;
+    char temp[16];
+    while( !feof(file))
+    {
+        fscanf(file,"%s %s %s %d",vInfo.threadName,vInfo.variableName,temp,&vInfo.recordSeq);
+        printf("%s,%s,%s,%d\n",vInfo.threadName,vInfo.variableName,temp,vInfo.recordSeq);
+    }
+
+}
+
+struct variableInfo
+{
+    int recordSeq;
+    int writeOrRead;
+    char threadName[16];
+    char variableName[8];
+};
+
+void enter_replay(void);

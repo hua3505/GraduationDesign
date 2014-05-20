@@ -1,0 +1,503 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include<list>
+#include<string.h>
+#include <semaphore.h>
+using namespace std;
+
+struct variableInfo
+{
+    int recordSeq;
+    int writeOrRead;
+    char threadName[16];
+    char variableName[8];
+};
+
+sem_t bin_sem;
+list<struct variableInfo> recordList;
+static int recordTime = 1;
+int enter_write(char* tName,char *vName);
+int enter_read(char* tName,char *vName);
+
+using namespace std;
+int a ;
+float b;
+
+void *tprocess1(void *args)
+{
+    while(1)
+    {
+enter_read("tprocess1","a");
+        int temp = a;
+        temp ++;
+enter_write("tprocess1","a");
+        a = temp;
+enter_read("tprocess1","b");
+        temp = b;
+        temp --;
+enter_write("tprocess1","b");
+        b = temp;
+        //printf("thread1:a = %d,b = %f\n",a,b);
+    }
+    return NULL;
+}
+
+void *tprocess2(void *args)
+{
+    while(1)
+    {
+enter_read("tprocess2","a");
+        int temp = a;
+        temp --;
+enter_write("tprocess2","a");
+        a = temp;
+enter_read("tprocess2","b");
+        temp = b;
+        temp ++;
+enter_write("tprocess2","b");
+        b = temp;
+        //printf("thread2:a = %d,b = %f\n",a,b);
+    }
+    return NULL;
+}
+
+int main()
+{
+    int res = sem_init(&bin_sem, 0, 1);
+    if (res != 0)
+    {
+         printf("Semaphore initialization failed\n");
+    }
+
+
+enter_write("main","a");
+    a = 1;
+enter_write("main","b");
+    b = 2.3;
+enter_read("main","a");
+    int tempA = a;
+enter_read("main","b");
+    float tempB = b;
+    printf("a = %d,b = %f\n",tempA,tempB);
+    pthread_t t1;
+    pthread_t t2;
+    pthread_create(&t1,NULL,tprocess1,NULL);
+    pthread_create(&t2,NULL,tprocess2,NULL);
+    pthread_join(t1,NULL);
+    
+    list<struct variableInfo>::iterator itor;
+    itor=recordList.begin();
+    FILE *file = fopen("result.txt","w");
+    if(file == NULL)
+    {
+        printf("open file error!\n");
+        return -1;
+    }
+    
+    while(itor!=recordList.end())
+    {
+        fprintf(file,"%s %s %s %d\n",itor->threadName,itor->variableName,(itor->writeOrRead?"write":"read"),itor->recordSeq);
+        //cout<< itor->threadName<<endl;
+        //cout<< itor->variableName<<endl;
+        //cout<< itor->recordSeq<<endl;
+        //cout<< itor->writeOrRead<<endl;
+        itor++;
+    }
+    fclose(file);
+    sem_destroy(&bin_sem);
+
+    return 0;
+}
+
+#include <gtk/gtk.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "recordModule.h"
+
+//存储变量信息的结构体
+struct variableInfomation
+{
+    int lineNumber;
+    int writeOrRead;
+    char threadName[16];
+    char variableName[8];
+};
+
+extern GtkWidget *window;
+
+char pSourceFile[64];
+char infoFile[64];
+
+GtkTextBuffer *beforeInsertBuffer;/*插装前的文本的缓冲区*/
+GtkTextBuffer *afterInsertBuffer;/*插装后的文本的缓冲区*/
+
+/**
+获取变量的操作次数
+param：FILE * pfile  要读取的文件的指针
+return: 0 成功
+**/
+int getLinesOfFile(FILE * pfile);
+/**
+把变量操作替换为模块入口,并在函数头插入声明，在函数尾插入记录模块
+param：struct variableInfomation *variableInfo 存储变量信息的结构体数组
+param：int lines 数组的大小
+return: 0 成功
+**/
+int replaceActions( struct variableInfomation *variableInfo,int lines);
+char *get_filename(char *title);
+void sourceFileButtonPressed(void);
+void infoFileButtonPressed(void);
+void startInsertFileButtonPressed(void);
+void file_ok_sel( GtkWidget *w,GtkFileSelection *fs );
+
+int create_record_notebook(GtkWidget *notebook)
+{
+    GtkWidget *hButtonBox;/*按钮*/
+    GtkWidget *hLabelBox;/*插装前，插装后的标签*/
+    GtkWidget *hTextBox;/*文本*/
+    GtkWidget *vPageBox;/*标签页*/
+    GtkWidget *tab_label;/*botebook的标题*/
+
+    GtkWidget *sourceFileButton;/*打开源文件按钮*/
+    //GtkWidget *sourceFileButtonFixed;/*控制位置*/
+    GtkWidget *infoFileButton;/*打开信息记录文件按钮*/
+    GtkWidget *insertToFileButton;/*插装按钮*/
+
+    GtkWidget *beforeInsertLabel;/*插装前的标签*/
+    GtkWidget *afterInsertLabel;/*插装后的标签*/
+
+    GtkWidget *beforeInsertTextView;/*插装前的文本*/
+
+    GtkWidget *beforeInsertScroll;
+    GtkWidget *afterInsertTextView;/*插装后的文本*/
+    GtkWidget *afterInsertScroll;
+
+    vPageBox = gtk_vbox_new(FALSE,0);
+    tab_label = gtk_label_new(RECORD_MODULE_NAME);
+    gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vPageBox, tab_label);
+
+    hButtonBox = gtk_hbox_new(FALSE,0);
+    gtk_box_pack_start(GTK_BOX(vPageBox), hButtonBox, FALSE, FALSE, 1);
+
+    /*打开源代码文件按钮*/
+    sourceFileButton = gtk_button_new_with_label(SOURCE_BUTTON);
+//    sourceFileButtonFixed = gtk_fixed_new();//一个fixed的容器，放入button
+//    gtk_widget_set_usize(sourceFileButtonFixed,100,50);
+//    gtk_fixed_put(GTK_FIXED(sourceFileButtonFixed), sourceFileButton, 0, 0);
+    gtk_box_pack_start(GTK_BOX(hButtonBox), sourceFileButton, TRUE, TRUE, 5);
+    g_signal_connect(GTK_OBJECT(sourceFileButton),"pressed",G_CALLBACK(sourceFileButtonPressed),NULL);
+
+    /*打开信息记录文件按钮*/
+    infoFileButton = gtk_button_new_with_label(INFO_BUTTON);
+    gtk_box_pack_start(GTK_BOX(hButtonBox), infoFileButton, TRUE, TRUE, 5);
+    g_signal_connect(GTK_OBJECT(infoFileButton),"pressed",G_CALLBACK(infoFileButtonPressed),NULL);
+
+
+    /*插装按钮*/
+    insertToFileButton = gtk_button_new_with_label(INSERT_BUTTON);
+    gtk_box_pack_start(GTK_BOX(hButtonBox), insertToFileButton, TRUE, TRUE, 5);
+    g_signal_connect(GTK_OBJECT(insertToFileButton),"pressed",G_CALLBACK(startInsertFileButtonPressed),NULL);
+
+
+
+    /*标签容器*/
+    hLabelBox = gtk_hbox_new(FALSE,0);
+    gtk_box_pack_start(GTK_BOX(vPageBox), hLabelBox, FALSE, FALSE, 1);
+
+    /*“插装前”标签*/
+    beforeInsertLabel = gtk_label_new(BEFORE_INSERT_LABEL);
+    gtk_box_pack_start(GTK_BOX(hLabelBox), beforeInsertLabel, TRUE, TRUE, 5);
+
+    /*“插装后”标签*/
+    afterInsertLabel = gtk_label_new(AFTER_INSERT_LABEL);
+    gtk_box_pack_start(GTK_BOX(hLabelBox), afterInsertLabel, TRUE, TRUE, 5);
+
+    /*文本容器*/
+    hTextBox = gtk_hbox_new(FALSE,0);
+    gtk_box_pack_start(GTK_BOX(vPageBox), hTextBox, TRUE, TRUE, 5);
+
+    beforeInsertBuffer = gtk_text_buffer_new(NULL);/*创建文本框的缓冲区*/
+    beforeInsertTextView = gtk_text_view_new_with_buffer(beforeInsertBuffer);/*创建文本框构件*/
+    beforeInsertScroll = gtk_scrolled_window_new(NULL,NULL);
+    gtk_container_add(GTK_CONTAINER(beforeInsertScroll),beforeInsertTextView);
+    gtk_box_pack_start(GTK_BOX(hTextBox), beforeInsertScroll, TRUE, TRUE, 5);
+
+    afterInsertBuffer = gtk_text_buffer_new(NULL);/*创建文本框的缓冲区*/
+    afterInsertTextView = gtk_text_view_new_with_buffer(afterInsertBuffer);/*创建文本框构件*/
+    afterInsertScroll = gtk_scrolled_window_new(NULL,NULL);
+    gtk_container_add(GTK_CONTAINER(afterInsertScroll),afterInsertTextView);
+    gtk_box_pack_start(GTK_BOX(hTextBox), afterInsertScroll, TRUE, TRUE, 5);
+
+    //鼠标离开按钮时触发leave信号
+    //g_signal_connect(GTK_OBJECT(button),"leave",G_CALLBACK(button_leave),NULL);
+    //鼠标按下按钮时触发pressed信号
+    //g_signal_connect(GTK_OBJECT(button),"pressed",G_CALLBACK(button_pressed),NULL);
+    //鼠标松开是触发clicked信号
+    //g_signal_connect(GTK_OBJECT(button),"clicked",G_CALLBACK(button_clicked),NULL);
+    return 0;
+}
+
+void sourceFileButtonPressed()
+{
+    char fileName[50];
+    strcpy(fileName, get_filename(CHOSE_FILE));
+    strcpy(pSourceFile,fileName);
+    if(fileName[0] != '\0')
+    {
+        FILE *file = fopen(fileName,"r");
+        if(file == NULL)
+        {
+            printf("open file error!\n");
+        }
+        else
+        {
+            char text[1024];
+            GtkTextIter start,end;
+            gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(beforeInsertBuffer),&start,&end);/*获得缓冲区开始和结束位置的Iter*/
+            while(fgets(text,1024,file)!=NULL)
+            {
+                gtk_text_buffer_insert(GTK_TEXT_BUFFER(beforeInsertBuffer),&start,text,strlen(text));/*插入文本到缓冲区*/
+            }
+        }
+    }
+    else
+    {
+        printf("file name is null\n");
+    }
+}
+
+char *get_filename(char *title)
+{
+    GtkWidget *file_chooser;
+    char *filename = NULL;
+    int result;
+
+    file_chooser = gtk_file_chooser_dialog_new(title, GTK_WINDOW(window),
+                                             GTK_FILE_CHOOSER_ACTION_OPEN, "确定", 1, "取消", 2, NULL);
+    gtk_window_set_position(GTK_WINDOW(file_chooser), GTK_WIN_POS_CENTER);
+
+    result = gtk_dialog_run(GTK_DIALOG(file_chooser));
+    if (result == 1)
+    {
+        filename = malloc(50);
+        strcpy(filename, gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(file_chooser)));
+    }
+
+    gtk_widget_destroy(file_chooser);
+    return filename;
+}
+
+void infoFileButtonPressed()
+{
+    char fileName[50];
+    strcpy(fileName, get_filename(INFOMATION_FILE));
+    strcpy(infoFile,fileName);
+}
+
+void startInsertFileButtonPressed()
+{
+    //打开文件部分
+    FILE *pInfo = NULL;
+    pInfo = fopen(infoFile,"r+");
+    if(pInfo == NULL)
+    {
+        printf("open file failed\n");
+        return ;
+    }
+
+    //获取变量操作的次数
+    int lines = getLinesOfFile(pInfo);
+    //printf("lines of file = %d\n",lines);
+    //根据变量操作的次数，创建变量信息的结构体数组
+    struct variableInfomation variableInfoArray[lines];
+    fseek( pInfo, 0, SEEK_SET );                    //把指针移到文件头
+
+    //对结构体进行赋值
+    int index = 0;
+    while( !feof(pInfo))
+    {
+        fscanf(pInfo,"%d %d %s %s",&variableInfoArray[index].lineNumber,&variableInfoArray[index].writeOrRead,variableInfoArray[index].threadName,variableInfoArray[index].variableName);
+        index ++;
+    }
+    replaceActions(variableInfoArray,lines);
+//    for(index = 0;index < lines;index ++)
+//    {
+//        printf("lines = %d,writeOrRead = %d,threadName = %s,variablename = %s\n",variableInfoArray[index].lineNumber,variableInfoArray[index].writeOrRead,variableInfoArray[index].threadName,variableInfoArray[index].variableName);
+//    }
+    fclose(pInfo);
+}
+
+int getLinesOfFile(FILE * pfile)
+{
+    char text[1024] = "\0";
+    int lines = 0;
+    while(fgets(text,1024,pfile)!=NULL)//逐行读取fp1所指向文件中的内容到text中
+    {
+        lines ++;
+    }
+
+    return lines;
+}
+
+int replaceActions( struct variableInfomation *variableInfo,int lines)
+{
+    FILE *sourceFile = NULL;
+    sourceFile = fopen(pSourceFile,"r+");
+    if(sourceFile == NULL)
+    {
+        printf("open file failed\n");
+        return -1;
+    }
+
+    FILE *tempFile = NULL;
+    tempFile = fopen(TEMP_FILE,"w+");
+    if(tempFile == NULL)
+    {
+        printf("open file failed\n");
+        return -1;
+    }
+
+    int index = 1;
+    char text[1024] = "\0";
+    int arrayIndex = 0;
+    int flag = 0;
+    int header = 1;
+    while(fgets(text,1024,sourceFile)!=NULL)///逐行读取fp1所指向文件中的内容到text中
+    {
+        flag = 0;
+        //printf("%d-%s\n",index,text);
+        ///插入头文件
+        if(header)
+        {
+            if(NULL!= strstr(text,"using namespace std;"))
+            {
+                FILE *headerFile = fopen(HEADER_FILE,"r");
+                char temp[1024];
+                if(headerFile == NULL)
+                {
+                    printf("open file error!\n");
+                    return -1;
+                }
+                while(fgets(temp,1024,headerFile)!=NULL)
+                {
+                    fputs(temp,tempFile);
+                }
+                header = 0;
+                fclose(headerFile);
+            }
+        }
+
+        ///变量操作替换为模块入口
+        for(arrayIndex = 0;arrayIndex < lines;arrayIndex ++)
+        {
+            if(index == variableInfo[arrayIndex].lineNumber)
+            {
+                ///将对变量的读操作替换为函数的入口
+                if(0 == variableInfo[arrayIndex].writeOrRead )
+                {
+                    fprintf(tempFile,"enter_read(\"%s\",\"%s\");\n",variableInfo[arrayIndex].threadName,variableInfo[arrayIndex].variableName);
+                    fputs(text,tempFile);
+                    flag = 1;
+                    break;
+                    //printf("enter_read\n");
+                }
+                ///将对变量的写操作替换为函数入口
+                else if(1 == variableInfo[arrayIndex].writeOrRead)
+                {
+                    fprintf(tempFile,"enter_write(\"%s\",\"%s\");\n",variableInfo[arrayIndex].threadName,variableInfo[arrayIndex].variableName);
+                    fputs(text,tempFile);
+                    flag = 1;
+                    break;
+                    //printf("enter_write\n");
+                }
+                ///在main函数的末尾处对记录的信息输出文件
+                else if(2 == variableInfo[arrayIndex].writeOrRead)
+                {
+                    char temp[1024];
+                    FILE *headerToFile = fopen(RECORDTO_FILE,"r");
+                    if(headerToFile == NULL)
+                    {
+                        printf("open file error!\n");
+                        return -1;
+                    }
+                    while(fgets(temp,1024,headerToFile)!=NULL)
+                    {
+                        fputs(temp,tempFile);
+                    }
+                    fputs(text,tempFile);
+                    flag = 1;
+                    fclose(headerToFile);
+                    break;
+                }
+                ///对信号量的初始化
+                else if(3 == variableInfo[arrayIndex].writeOrRead)
+                {
+                    char temp[1024];
+                    FILE *semInit = fopen(SEMINIT_FILE,"r");
+                    if(semInit == NULL)
+                    {
+                         printf("open file error!\n");
+                        return -1;
+                    }
+                    while(fgets(temp,1024,semInit)!=NULL)
+                    {
+                        fputs(temp,tempFile);
+                    }
+                    fputs(text,tempFile);
+                    flag = 1;
+                    fclose(semInit);
+                    break;
+                }
+            }
+        }
+        if(flag == 0)
+        {
+            fputs(text,tempFile);
+        }
+        index++;
+    }
+    fclose(sourceFile);
+    fseek( tempFile, 0, SEEK_SET );
+
+    sourceFile = fopen(pSourceFile,"w");
+    if(sourceFile == NULL)
+    {
+        printf("open file failed\n");
+        return -1;
+    }
+    GtkTextIter start,end;
+    gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(afterInsertBuffer),&start,&end);/*获得缓冲区开始和结束位置的Iter*/
+    ///将临时文件的内容拷贝回原文件
+    while(fgets(text,1024,tempFile)!=NULL)
+    {
+        fputs(text,sourceFile);
+        gtk_text_buffer_insert(GTK_TEXT_BUFFER(afterInsertBuffer),&start,text,strlen(text));/*插入文本到缓冲区*/
+    }
+    ///在文件末尾插入记录模块
+    FILE *recordFile = fopen(RECORD_FILE,"r");
+    if(recordFile == NULL)
+    {
+        printf("open file failed\n");
+        return -1;
+    }
+    while(fgets(text,1024,recordFile)!=NULL)
+    {
+        fputs(text,sourceFile);
+        gtk_text_buffer_insert(GTK_TEXT_BUFFER(afterInsertBuffer),&start,text,strlen(text));/*插入文本到缓冲区*/
+    }
+//    while(!feof(recordFile))
+//    {
+//        fgets(text,1024,recordFile);
+//        fputs(text,sourceFile);
+//    }
+
+    fclose(recordFile);
+    fclose(tempFile);
+    fclose(sourceFile);
+    return 0;
+}
+
+
+

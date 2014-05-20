@@ -1,0 +1,10 @@
+#include <semaphore.h>
+sem_t bin_sem;
+//    int res = sem_init(&bin_sem, 0, 1);
+//    if (res != 0)
+//    {
+//        printf("Semaphore initialization failed\n");
+//    }
+sem_wait(&bin_sem);
+sem_post(&bin_sem);
+sem_destroy(&bin_sem);
