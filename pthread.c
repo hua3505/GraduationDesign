@@ -1,4 +1,3 @@
-#include "klee/klee.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -70,7 +69,7 @@ void *subp2()
 {
     int i;
     
-    for (i=0; i<5; i++)
+    for (i=0; i<LOOPS; i++)
     {
         P(semid, 1);
         a++;
