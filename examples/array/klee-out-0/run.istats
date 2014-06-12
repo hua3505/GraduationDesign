@@ -1,0 +1,34 @@
+version: 1
+creator: klee
+pid: 1000
+cmd: array.o
+
+
+positions: instr line
+event: Icov : CoveredInstructions
+event: Forks : Forks
+event: Ireal : InstructionRealTimes
+event: Itime : InstructionTimes
+event: I : Instructions
+event: UCdist : MinDistToUncovered
+event: Rtime : ResolveTime
+event: States : States
+event: Iuncov : UncoveredInstructions
+event: Q : Queries
+event: Qiv : QueriesInvalid
+event: Qv : QueriesValid
+event: Qtime : QueryTime
+events: Icov Forks Ireal Itime I UCdist Rtime States Iuncov Q Qiv Qv Qtime 
+ob=/home/shaw/work/klee/examples/array/./klee-out-0/assembly.ll
+fn=main
+fl=/home/shaw/work/klee/examples/array/array.c
+12 13 1 0 0 0 1 0 0 0 0 0 0 0 0 
+13 13 1 0 0 0 1 0 0 0 0 0 0 0 0 
+14 13 1 0 0 0 1 0 0 0 0 0 0 0 0 
+15 13 1 0 0 0 1 0 0 0 0 0 0 0 0 
+16 14 1 0 0 0 1 0 0 0 0 0 0 0 0 
+17 15 1 0 0 0 1 0 0 0 0 0 0 0 0 
+18 15 1 0 0 0 1 0 0 0 0 0 0 0 0 
+19 15 1 0 0 0 1 0 0 0 0 0 0 0 0 
+20 15 1 0 0 0 1 0 0 0 0 0 0 0 0 
+21 15 1 0 0 0 1 0 0 0 0 0 0 0 0 
