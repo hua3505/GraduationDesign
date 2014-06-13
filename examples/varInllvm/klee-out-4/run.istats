@@ -1,0 +1,60 @@
+version: 1
+creator: klee
+pid: 1000
+cmd: malloc.o
+
+
+positions: instr line
+event: Icov : CoveredInstructions
+event: Forks : Forks
+event: Ireal : InstructionRealTimes
+event: Itime : InstructionTimes
+event: I : Instructions
+event: UCdist : MinDistToUncovered
+event: Rtime : ResolveTime
+event: States : States
+event: Iuncov : UncoveredInstructions
+event: Q : Queries
+event: Qiv : QueriesInvalid
+event: Qv : QueriesValid
+event: Qtime : QueryTime
+events: Icov Forks Ireal Itime I UCdist Rtime States Iuncov Q Qiv Qv Qtime 
+ob=/home/shaw/work/klee/examples/varInllvm/./klee-out-4/assembly.ll
+fn=main
+fl=/home/shaw/work/klee/examples/varInllvm/malloc.c
+10 11 1 0 0 0 1 0 0 0 0 0 0 0 0 
+11 11 1 0 0 0 1 0 0 0 0 0 0 0 0 
+12 11 1 0 0 0 1 0 0 0 0 0 0 0 0 
+13 11 1 0 0 0 1 0 0 0 0 0 0 0 0 
+14 11 1 0 0 0 1 0 0 0 0 0 0 0 0 
+15 11 1 0 0 0 1 0 0 0 0 0 0 0 0 
+16 11 1 0 0 0 1 0 0 0 0 0 0 0 0 
+17 13 1 0 0 0 1 0 0 0 0 0 0 0 0 
+18 13 1 0 0 0 1 0 0 0 0 0 0 0 0 
+19 14 1 0 0 0 1 0 0 0 0 0 0 0 0 
+20 14 1 0 0 0 1 0 0 0 0 0 0 0 0 
+21 14 1 0 0 0 1 0 0 0 0 0 0 0 0 
+22 15 1 0 0 0 1 0 0 0 0 0 0 0 0 
+23 15 1 0 0 0 1 0 0 0 0 0 0 0 0 
+24 15 1 0 0 0 1 0 0 0 0 0 0 0 0 
+25 15 1 0 0 0 1 0 0 0 0 0 0 0 0 
+26 16 1 0 0 0 1 0 0 0 0 0 0 0 0 
+27 16 1 0 0 0 1 0 0 0 0 0 0 0 0 
+28 17 1 0 0 0 1 0 0 0 0 0 0 0 0 
+29 17 1 0 0 0 1 0 0 0 0 0 0 0 0 
+30 17 1 0 0 0 1 0 0 0 0 0 0 0 0 
+31 18 1 0 0 0 1 0 0 0 0 0 0 0 0 
+32 18 1 0 0 0 1 0 0 0 0 0 0 0 0 
+33 18 1 0 0 0 1 0 0 0 0 0 0 0 0 
+34 18 1 0 0 0 1 0 0 0 0 0 0 0 0 
+35 19 1 0 0 0 1 0 0 0 0 0 0 0 0 
+36 19 1 0 0 0 1 0 0 0 0 0 0 0 0 
+37 20 1 0 0 0 1 0 0 0 0 0 0 0 0 
+38 20 1 0 0 0 1 0 0 0 0 0 0 0 0 
+39 20 1 0 0 0 1 0 0 0 0 0 0 0 0 
+40 21 1 0 0 0 1 0 0 0 0 0 0 0 0 
+41 21 1 0 0 0 1 0 0 0 0 0 0 0 0 
+42 22 1 0 0 0 1 0 0 0 0 0 0 0 0 
+43 22 1 0 0 0 1 0 0 0 0 0 0 0 0 
+44 23 1 0 0 0 1 0 0 0 0 0 0 0 0 
+45 23 1 0 0 0 1 0 0 0 0 0 0 0 0 

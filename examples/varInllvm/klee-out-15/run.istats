@@ -1,0 +1,68 @@
+version: 1
+creator: klee
+pid: 1000
+cmd: malloc.o
+
+
+positions: instr line
+event: Icov : CoveredInstructions
+event: Forks : Forks
+event: Ireal : InstructionRealTimes
+event: Itime : InstructionTimes
+event: I : Instructions
+event: UCdist : MinDistToUncovered
+event: Rtime : ResolveTime
+event: States : States
+event: Iuncov : UncoveredInstructions
+event: Q : Queries
+event: Qiv : QueriesInvalid
+event: Qv : QueriesValid
+event: Qtime : QueryTime
+events: Icov Forks Ireal Itime I UCdist Rtime States Iuncov Q Qiv Qv Qtime 
+ob=/home/shaw/work/klee/examples/varInllvm/./klee-out-15/assembly.ll
+fn=main
+fl=/home/shaw/work/klee/examples/varInllvm/malloc.c
+11 12 1 0 0 0 1 0 0 0 0 0 0 0 0 
+12 12 1 0 0 0 1 0 0 0 0 0 0 0 0 
+13 12 1 0 0 0 1 0 0 0 0 0 0 0 0 
+14 12 1 0 0 0 1 0 0 0 0 0 0 0 0 
+15 12 1 0 0 0 1 0 0 0 0 0 0 0 0 
+16 12 1 0 0 0 1 0 0 0 0 0 0 0 0 
+17 12 1 0 0 0 1 0 0 0 0 0 0 0 0 
+18 12 1 0 0 0 1 0 0 0 0 0 0 0 0 
+19 13 1 0 0 0 1 0 0 0 0 0 0 0 0 
+20 15 1 0 0 0 1 0 0 0 0 0 0 0 0 
+21 15 1 0 0 0 1 0 0 0 0 0 0 0 0 
+22 16 1 0 0 0 1 0 0 0 0 0 0 0 0 
+23 16 1 0 0 0 1 0 0 0 0 0 0 0 0 
+24 16 1 0 0 0 1 0 0 0 0 0 0 0 0 
+25 17 1 0 0 0 1 0 0 0 0 0 0 0 0 
+26 17 1 0 0 0 1 0 0 0 0 0 0 0 0 
+27 17 1 0 0 0 1 0 0 0 0 0 0 0 0 
+28 17 1 0 0 0 1 0 0 0 0 0 0 0 0 
+29 18 1 0 0 0 1 0 0 0 0 0 0 0 0 
+30 18 1 0 0 0 1 0 0 0 0 0 0 0 0 
+31 19 1 0 0 0 1 0 0 0 0 0 0 0 0 
+32 19 1 0 0 0 1 0 0 0 0 0 0 0 0 
+33 19 1 0 0 0 1 0 0 0 0 0 0 0 0 
+34 20 1 0 0 0 1 0 0 0 0 0 0 0 0 
+35 20 1 0 0 0 1 0 0 0 0 0 0 0 0 
+36 20 1 0 0 0 1 0 0 0 0 0 0 0 0 
+37 20 1 0 0 0 1 0 0 0 0 0 0 0 0 
+38 21 1 0 0 0 1 0 0 0 0 0 0 0 0 
+39 21 1 0 0 0 1 0 0 0 0 0 0 0 0 
+40 22 1 0 0 0 1 0 0 0 0 0 0 0 0 
+41 22 1 0 0 0 1 0 0 0 0 0 0 0 0 
+42 22 1 0 0 0 1 0 0 0 0 0 0 0 0 
+43 23 1 0 0 0 1 0 0 0 0 0 0 0 0 
+44 23 1 0 0 0 1 0 0 0 0 0 0 0 0 
+45 24 1 0 0 0 1 0 0 0 0 0 0 0 0 
+46 24 1 0 0 0 1 0 0 0 0 0 0 0 0 
+47 27 1 0 0 0 1 0 0 0 0 0 0 0 0 
+48 27 1 0 0 0 1 0 0 0 0 0 0 0 0 
+49 28 1 0 0 0 1 0 0 0 0 0 0 0 0 
+50 28 1 0 0 0 1 0 0 0 0 0 0 0 0 
+51 29 1 0 0 0 1 0 0 0 0 0 0 0 0 
+52 29 1 0 0 0 1 0 0 0 0 0 0 0 0 
+53 31 1 0 0 0 1 0 0 0 0 0 0 0 0 
+54 31 1 0 0 0 1 0 0 0 0 0 0 0 0 
